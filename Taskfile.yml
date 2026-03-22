@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  COMP_NAME: default
+  COMP_NAME: ai-mathematical-olympiad-progress-prize-3
 
 tasks:
   setup:
