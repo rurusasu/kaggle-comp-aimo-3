@@ -15,6 +15,11 @@ Approach:
 - Submit via kaggle_evaluation API
 """
 
+import subprocess
+import sys
+
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "vllm"])
+
 import gc
 import re
 import time

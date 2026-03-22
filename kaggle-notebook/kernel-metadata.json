@@ -1,12 +1,12 @@
 {
-  "id": "koheimiki/aimo-3-baseline",
+  "id": "koheimiki/aimo-3-baseline-deepseek-r1-majority-voting",
   "title": "AIMO 3 Baseline - DeepSeek R1 + Majority Voting",
   "code_file": "notebook.py",
   "language": "python",
   "kernel_type": "script",
   "is_private": true,
   "enable_gpu": true,
-  "enable_internet": false,
+  "enable_internet": true,
   "competition_sources": [
     "ai-mathematical-olympiad-progress-prize-3"
   ],
