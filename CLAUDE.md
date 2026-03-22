@@ -28,6 +28,55 @@
 - GPU: 最大128基の H100 GPU が利用可能（Fields Model Initiative 提供）
 - ファインチューニング用に提出前に利用可能
 
+## Current Approach
+
+### Baseline Method
+
+- **Model:** DeepSeek-R1-Qwen3-8B (open-source math reasoning model)
+- **Inference:** vLLM for fast batched generation on GPU
+- **Strategy:** Generate 16 chain-of-thought solutions per problem, extract integer answers via `\boxed{N}` pattern, select final answer by majority voting
+- **Time management:** 5hr GPU limit with per-problem budget (~25 min max) and early exit when time is low
+
+### Workflow
+
+1. Download/prepare model weights (e.g., DeepSeek-R1-Qwen3-8B)
+2. Upload model weights as a Kaggle Dataset
+3. Push notebook via `kaggle kernels push kaggle-notebook/`
+4. Notebook runs on Kaggle GPU (T4x2 or H100), no internet access
+5. `kaggle_evaluation` API serves problems one-by-one; notebook returns integer answers
+
+### File Layout
+
+- `kaggle-notebook/` — Kaggle submission (kernel-metadata.json + notebook.py)
+- `notebooks/` — Development notebooks (baseline_submission.py)
+- `src/` — Reusable modules (config, model, dataset, evaluate, submit)
+- `data/raw/` — Competition data (reference.csv, test.csv, sample_submission.csv)
+- `docs/` — Competition documentation
+
+### Training Data
+
+- `reference.csv`: 10 example problems with integer answers (columns: id, problem, answer)
+- `test.csv`: Placeholder test problems (columns: id, problem)
+- Full evaluation runs 110 original math olympiad problems (algebra, combinatorics, geometry, number theory)
+
+### How to Submit
+
+```bash
+# Push notebook to Kaggle
+kaggle kernels push kaggle-notebook/
+# Monitor status
+kaggle kernels status koheimiki/aimo-3-baseline
+```
+
+### Improvement Ideas
+
+- Stronger/larger models (DeepSeek-R1 distilled variants, Qwen3-32B if memory allows)
+- Prompt engineering: few-shot examples from reference problems, problem-type-specific prompts
+- Better answer extraction: handle more answer formats, confidence weighting
+- Adaptive sampling: increase N for hard problems, decrease for easy ones
+- Ensemble multiple models or prompting strategies
+- Fine-tuning on math competition datasets (AIME, AMC, IMO Shortlist)
+
 ## Documentation
 
 **IMPORTANT: Before starting any implementation work, you MUST read the relevant docs first.**
