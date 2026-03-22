@@ -1,59 +1,75 @@
-"""Inference entrypoint. Loads saved models and generates predictions.
+"""Inference entrypoint. Runs solver on reference problems (requires GPU + vLLM).
 
 Usage:
     uv run python scripts/predict.py
-    uv run python scripts/predict.py --model-dir outputs/models
+    uv run python scripts/predict.py --num-samples 8 --model deepseek-ai/DeepSeek-R1-0528-Qwen3-8B
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.config import Config
-from src.dataset import load_test
-from src.features import build_features
-from src.model import load_model, predict
+from src.dataset import load_reference
+from src.evaluate import evaluate_reference, log_experiment
+from src.model import load_vllm_model, solve_problem
 from src.submit import create_submission
 from src.utils import Timer, set_seed
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-dir", type=str, default=None)
+    parser.add_argument("--model", type=str, default=None)
+    parser.add_argument("--num-samples", type=int, default=16)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    cfg = Config(seed=args.seed)
+    cfg = Config(seed=args.seed, num_samples=args.num_samples)
+    if args.model:
+        cfg.model_name = args.model
     set_seed(cfg.seed)
-    model_dir = Path(args.model_dir) if args.model_dir else cfg.models_dir
 
-    with Timer("load data"):
-        df = load_test(cfg)
+    with Timer("load reference"):
+        ref_df = load_reference(cfg)
 
-    with Timer("build features"):
-        df = build_features(df, cfg, is_train=False)
+    with Timer("load model"):
+        llm = load_vllm_model(cfg)
 
-    feature_cols = [c for c in df.columns if c != "id"]
+    predictions = {}
+    for idx, row in ref_df.iterrows():
+        pid = row["id"]
+        problem = row["problem"]
+        print(f"\n--- Problem {idx + 1}/{len(ref_df)}: {pid} ---")
+        print(f"  True answer: {row['answer']}")
 
-    # Ensemble predictions from all fold models
-    model_paths = sorted(model_dir.glob("model_fold*.pkl"))
-    if not model_paths:
-        print(f"No models found in {model_dir}")
-        sys.exit(1)
+        with Timer(f"solve {pid}"):
+            pred = solve_problem(llm, problem, cfg)
 
-    all_preds = []
-    for path in model_paths:
-        model = load_model(path)
-        preds = predict(model, df[feature_cols])
-        all_preds.append(preds)
+        predictions[pid] = pred
+        print(f"  Predicted: {pred}, Correct: {pred == row['answer']}")
 
-    ensemble_preds = np.mean(all_preds, axis=0)
-    submission_path = create_submission(cfg, df["id"].tolist(), ensemble_preds.tolist())
-    print(f"Submission saved to {submission_path}")
+    # Evaluate
+    result = evaluate_reference(predictions, ref_df)
+    print(f"\n=== Results ===")
+    print(f"Accuracy: {result['correct']}/{result['total']} = {result['accuracy']:.2%}")
+
+    # Save submission
+    ids = [d["id"] for d in result["details"]]
+    preds = [d["pred"] for d in result["details"]]
+    sub_path = create_submission(cfg, ids, preds)
+    print(f"Submission saved to {sub_path}")
+
+    # Log
+    log_experiment(cfg, {
+        "experiment": f"baseline_{cfg.model_name}",
+        "model": cfg.model_name,
+        "num_samples": cfg.num_samples,
+        "accuracy": result["accuracy"],
+        "correct": result["correct"],
+        "total": result["total"],
+    })
 
 
 if __name__ == "__main__":

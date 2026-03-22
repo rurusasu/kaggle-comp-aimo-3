@@ -1,22 +1,71 @@
+"""Evaluation module for AIMO3.
+
+Metrics:
+- Simple accuracy: number of correct answers (public LB)
+- Penalized accuracy: run twice, both correct=1, one correct=0.5, neither=0 (private LB)
+"""
+
 import csv
 import json
 from datetime import UTC, datetime
 
 import numpy as np
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import KFold
 
 from src.config import Config
 
 
-def metric_fn(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """Competition metric. Replace with competition-specific metric."""
-    return accuracy_score(y_true, y_pred)
+def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Compute accuracy (fraction of exact matches)."""
+    return float(np.mean(y_true == y_pred))
 
 
-def get_cv_splitter(cfg: Config):
-    """Return CV splitter. Replace with StratifiedKFold/GroupKFold as needed."""
-    return KFold(n_splits=cfg.n_folds, shuffle=True, random_state=cfg.seed)
+def penalized_accuracy(y_true: np.ndarray, y_pred_run1: np.ndarray, y_pred_run2: np.ndarray) -> float:
+    """Compute penalized accuracy score (private LB metric).
+
+    For each problem:
+    - Both runs correct: 1.0
+    - One run correct: 0.5
+    - Neither correct: 0.0
+    """
+    correct1 = y_true == y_pred_run1
+    correct2 = y_true == y_pred_run2
+    scores = correct1.astype(float) * 0.5 + correct2.astype(float) * 0.5
+    return float(np.sum(scores))
+
+
+def evaluate_reference(predictions: dict[str, int], reference_df) -> dict:
+    """Evaluate predictions against reference problems.
+
+    Args:
+        predictions: dict of {id: predicted_answer}
+        reference_df: DataFrame with 'id' and 'answer' columns
+
+    Returns:
+        dict with evaluation results
+    """
+    correct = 0
+    total = 0
+    details = []
+    for _, row in reference_df.iterrows():
+        pid = row["id"]
+        true_answer = int(row["answer"])
+        pred_answer = predictions.get(pid, 0)
+        is_correct = pred_answer == true_answer
+        correct += is_correct
+        total += 1
+        details.append({
+            "id": pid,
+            "true": true_answer,
+            "pred": pred_answer,
+            "correct": is_correct,
+        })
+
+    return {
+        "accuracy": correct / total if total > 0 else 0.0,
+        "correct": correct,
+        "total": total,
+        "details": details,
+    }
 
 
 def log_experiment(cfg: Config, result: dict) -> None:
@@ -25,13 +74,11 @@ def log_experiment(cfg: Config, result: dict) -> None:
     timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
     result["timestamp"] = timestamp
 
-    # JSON (detailed, per-experiment)
     json_path = cfg.logs_dir / f"{timestamp}.json"
     json_path.write_text(json.dumps(result, indent=2, default=str))
 
-    # CSV (summary, append-only)
     csv_path = cfg.logs_dir / "experiments.csv"
-    flat = {k: str(v) if isinstance(v, list) else v for k, v in result.items()}
+    flat = {k: str(v) if isinstance(v, list | dict) else v for k, v in result.items()}
     file_exists = csv_path.exists()
     with open(csv_path, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=sorted(flat.keys()))
