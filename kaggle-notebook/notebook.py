@@ -21,14 +21,41 @@ import sys
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "vllm"])
 
 import gc
+import os
 import re
 import time
 from collections import Counter
 
 # -------------------------------------------------------------------
+# Debug: show available inputs
+# -------------------------------------------------------------------
+print("=== /kaggle/input contents ===")
+for root, dirs, files in os.walk("/kaggle/input"):
+    level = root.replace("/kaggle/input", "").count(os.sep)
+    indent = " " * 2 * level
+    print(f"{indent}{os.path.basename(root)}/")
+    if level < 3:
+        subindent = " " * 2 * (level + 1)
+        for f in files[:5]:
+            print(f"{subindent}{f}")
+        if len(files) > 5:
+            print(f"{subindent}... and {len(files) - 5} more")
+
+# -------------------------------------------------------------------
 # 1. Configuration
 # -------------------------------------------------------------------
-MODEL_PATH = "/kaggle/input/deepseek-r1-qwen3-8b"  # adjust to your dataset
+# Auto-detect model path
+def find_config_json(base="/kaggle/input"):
+    for root, dirs, files in os.walk(base):
+        if "config.json" in files and "tokenizer.json" in files:
+            return root
+    for root, dirs, files in os.walk(base):
+        if "config.json" in files:
+            return root
+    return None
+
+MODEL_PATH = find_config_json() or "/kaggle/input/deepseek-r1-0528/transformers/deepseek-r1-0528-qwen3-8b/1"
+print(f"Using model: {MODEL_PATH}")
 MAX_NEW_TOKENS = 32768
 TEMPERATURE = 0.6
 TOP_P = 0.95

@@ -10,6 +10,9 @@
   "competition_sources": [
     "ai-mathematical-olympiad-progress-prize-3"
   ],
+  "model_sources": [
+    "deepseek-ai/deepseek-r1-0528/transformers/deepseek-r1-0528-qwen3-8b/1"
+  ],
   "dataset_sources": [],
   "kernel_sources": []
 }
