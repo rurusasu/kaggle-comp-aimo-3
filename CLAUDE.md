@@ -77,6 +77,24 @@ kaggle kernels status koheimiki/aimo-3-baseline
 - Ensemble multiple models or prompting strategies
 - Fine-tuning on math competition datasets (AIME, AMC, IMO Shortlist)
 
+## Lessons Learned
+
+### Kaggle Notebook 環境
+
+1. **vllm がプリインストールされていない**: Notebook 冒頭で `pip install vllm` が必須。
+2. **Internet 設定**: pip install のためには `enable_internet: true` が必要。ただし提出時はインターネット無効が求められるため、モデル weights は Kaggle Dataset として事前アップロードが必要。学習/デバッグ時のみ internet=true にする。
+3. **kernel-metadata.json の id とタイトルの不一致**: Kaggle がタイトルから slug を自動生成し、push 時の id と一致しないと 409 Conflict になる。id は初回 push 後に生成された slug に合わせる。
+
+### モデル選択
+
+4. **モデル weights のアップロードが最大のボトルネック**: 8B モデルでも ~16GB。Kaggle Dataset のアップロードに時間がかかる。
+5. **GPU 5時間制限**: H100 なら 8B モデル × 110 問 × 16 サンプル ≈ 3-4 時間で収まる見込み。T4 では厳しい。
+6. **コードとデータセットの公開が必須**（賞金条件）: プライベートモデルは使えない。Hugging Face の公開モデルが前提。
+
+### 評価
+
+7. **Penalized accuracy**: 2 回実行され、両方で同じ答えを出す必要がある。非決定的な推論（temperature > 0）は不利。`temperature=0.0` を基本とし、majority voting で安定性を確保。
+
 ## Documentation
 
 **IMPORTANT: Before starting any implementation work, you MUST read the relevant docs first.**
