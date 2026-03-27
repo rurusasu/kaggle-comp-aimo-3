@@ -6,6 +6,10 @@ outputs/models/*
 outputs/submissions/*
 !outputs/**/.gitkeep
 
+# Logs & optimization
+logs/auto_optimize/optuna_study.db
+logs/auto_optimize/trials/*.json
+
 # Python
 __pycache__/
 *.pyc
