@@ -60,7 +60,7 @@ def show_best(db_path: Path | None = None, study_name: str = "auto-optimize") ->
     best = study.best_trial
     print(f"Best trial: #{best.number}")
     print(f"  Score: {best.value}")
-    print(f"  Params:")
+    print("  Params:")
     for k, v in best.params.items():
         print(f"    {k}: {v}")
     print(f"  Total trials: {len(study.trials)} ({len(completed)} completed)")

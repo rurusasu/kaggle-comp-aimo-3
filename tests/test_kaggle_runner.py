@@ -50,7 +50,9 @@ def test_fetch_latest_score(mock_run):
 
 @patch("src.optimizer.kaggle_runner.subprocess.run")
 def test_fetch_latest_score_no_submissions(mock_run):
-    mock_run.return_value = MagicMock(returncode=0, stdout="fileName,date,description,status,publicScore,privateScore\n", stderr="")
+    mock_run.return_value = MagicMock(
+        returncode=0, stdout="fileName,date,description,status,publicScore,privateScore\n", stderr=""
+    )
     runner = KaggleRunner(kernel_id="user/my-kernel", competition="my-comp")
     score = runner.fetch_latest_score(wait=0)
     assert score is None

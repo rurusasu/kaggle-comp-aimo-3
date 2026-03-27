@@ -25,7 +25,7 @@ def patch_notebook(notebook_path: Path, params: dict) -> None:
         if name not in _PARAM_TYPES:
             raise ValueError(f"Unknown parameter: {name}")
         pattern = rf"^({name}\s*=\s*)(\S+)(\s*#.*)?$"
-        formatted = str(value) if isinstance(value, int) else f"{value}"
+        formatted = str(value) if isinstance(value, int) else f"{round(value, 6)}"
         replacement = rf"\g<1>{formatted}\g<3>"
         content, count = re.subn(pattern, replacement, content, count=1, flags=re.MULTILINE)
         if count == 0:
