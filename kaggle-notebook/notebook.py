@@ -54,10 +54,10 @@ import polars as pl
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-NUM_SAMPLES = 4              # parallel candidates per problem
-NUM_TIR_ROUNDS = 1           # max code execution rounds
+NUM_SAMPLES = 8              # parallel candidates per problem
+NUM_TIR_ROUNDS = 4           # max code execution rounds
 MAX_NEW_TOKENS = 2048        # per generation step (shorter, multiple rounds)
-TEMPERATURE = 0.7            # higher diversity for SC-TIR
+TEMPERATURE = 0.8            # higher diversity for SC-TIR
 TOP_P = 0.95
 GPU_MEMORY_UTILIZATION = 0.92
 MAX_MODEL_LEN = 16384        # total context window

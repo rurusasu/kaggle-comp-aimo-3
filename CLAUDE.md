@@ -62,10 +62,29 @@
 ### How to Submit
 
 ```bash
-# Push notebook to Kaggle
-kaggle kernels push kaggle-notebook/
+# Push notebook to Kaggle (API push — creates a new version)
+PYTHONUTF8=1 uv run kaggle kernels push kaggle-notebook/
 # Monitor status
-kaggle kernels status koheimiki/aimo-3-baseline
+PYTHONUTF8=1 uv run kaggle kernels status koheimiki/aimo-3-baseline-deepseek-r1-majority-voting
+# Check submissions
+PYTHONUTF8=1 uv run kaggle competitions submissions -c ai-mathematical-olympiad-progress-prize-3
+```
+
+**重要**: エディタから Submit する場合は、Input に vllm Dataset (`denizyunusg/vllm-0-13-0-with-dependencies-for-offline-install`) を手動追加し、Internet OFF にする必要あり。kernel-metadata.json の dataset_sources はエディタ Submit に自動反映されない。
+
+### Experiment PDCA Workflow
+
+```bash
+# 1. ローカル評価 (reference.csv 10問)
+python scripts/evaluate_local.py --temperature 0.3 --num_samples 4
+
+# 2. グリッドサーチ
+python scripts/grid_search.py --max_problems 3
+
+# 3. 実験結果確認
+python scripts/show_experiments.py
+
+# 4. ベスト設定を notebook.py に反映 → Kaggle Submit
 ```
 
 ### Improvement Ideas
