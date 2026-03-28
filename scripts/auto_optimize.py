@@ -59,6 +59,8 @@ def make_objective(runner: KaggleRunner, poll_timeout: int, poll_interval: int, 
             if not push_result["success"]:
                 logger.error("Trial %d: push failed: %s", trial.number, push_result["stderr"])
                 raise optuna.TrialPruned(f"Push failed: {push_result['stderr']}")
+            version = push_result["version"]
+            logger.info("Trial %d: pushed version %s", trial.number, version)
 
             # 5. Poll until complete
             status = runner.poll_until_complete(timeout=poll_timeout, interval=poll_interval)
@@ -67,10 +69,10 @@ def make_objective(runner: KaggleRunner, poll_timeout: int, poll_interval: int, 
                 save_trial_detail(TRIALS_DIR, trial.number, params, score=None, status=status)
                 raise optuna.TrialPruned(f"Kernel status: {status}")
 
-            # 6. Fetch score
-            score = runner.fetch_latest_score(wait=score_wait)
+            # 6. Fetch score (match by version number)
+            score = runner.fetch_score_for_version(version=version, wait=score_wait)
             if score is None:
-                logger.error("Trial %d: could not fetch score", trial.number)
+                logger.error("Trial %d: could not fetch score for version %s", trial.number, version)
                 save_trial_detail(TRIALS_DIR, trial.number, params, score=None, status="score_missing")
                 raise optuna.TrialPruned("Could not fetch score")
 
