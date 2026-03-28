@@ -21,6 +21,8 @@ except ImportError:
     candidates = [
         "/kaggle/input/vllm-0-13-0-with-dependencies-for-offline-install/wheels",
         "/kaggle/input/vllm-0-13-0-with-dependencies-for-offline-install",
+        "/kaggle/input/datasets/denizyunusg/vllm-0-13-0-with-dependencies-for-offline-install/wheels",
+        "/kaggle/input/datasets/denizyunusg/vllm-0-13-0-with-dependencies-for-offline-install",
     ]
     wheels_dir = None
     for c in candidates:
@@ -52,10 +54,10 @@ import polars as pl
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-NUM_SAMPLES = 8              # parallel candidates per problem
-NUM_TIR_ROUNDS = 4           # max code execution rounds
+NUM_SAMPLES = 4              # parallel candidates per problem
+NUM_TIR_ROUNDS = 1           # max code execution rounds
 MAX_NEW_TOKENS = 2048        # per generation step (shorter, multiple rounds)
-TEMPERATURE = 0.8            # higher diversity for SC-TIR
+TEMPERATURE = 0.7            # higher diversity for SC-TIR
 TOP_P = 0.95
 GPU_MEMORY_UTILIZATION = 0.92
 MAX_MODEL_LEN = 16384        # total context window
@@ -376,8 +378,12 @@ inference_server = kaggle_evaluation.aimo_3_inference_server.AIMO3InferenceServe
 if os.getenv("KAGGLE_IS_COMPETITION_RERUN"):
     inference_server.serve()
 else:
-    test_path = "/kaggle/input/ai-mathematical-olympiad-progress-prize-3/test.csv"
-    if os.path.exists(test_path):
+    test_candidates = [
+        "/kaggle/input/ai-mathematical-olympiad-progress-prize-3/test.csv",
+        "/kaggle/input/competitions/ai-mathematical-olympiad-progress-prize-3/test.csv",
+    ]
+    test_path = next((p for p in test_candidates if os.path.exists(p)), None)
+    if test_path:
         inference_server.run_local_gateway((test_path,))
     else:
         print("No test.csv — skipping local gateway. Use 'Submit to Competition' in Kaggle.")
