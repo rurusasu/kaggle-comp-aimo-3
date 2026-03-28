@@ -6,13 +6,15 @@
   "kernel_type": "script",
   "is_private": true,
   "enable_gpu": true,
-  "enable_internet": true,
+  "enable_internet": false,
   "competition_sources": [
     "ai-mathematical-olympiad-progress-prize-3"
   ],
   "model_sources": [
     "deepseek-ai/deepseek-r1-0528/transformers/deepseek-r1-0528-qwen3-8b/1"
   ],
-  "dataset_sources": [],
+  "dataset_sources": [
+    "denizyunusg/vllm-0-13-0-with-dependencies-for-offline-install"
+  ],
   "kernel_sources": []
 }

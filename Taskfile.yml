@@ -69,3 +69,18 @@ tasks:
       - rm -rf outputs/models/* outputs/oof/* outputs/submissions/*
       - rm -f logs/*.json logs/*.csv
       - echo "Cleaned outputs and logs"
+
+  optimize:
+    desc: Run automated parameter optimization loop
+    cmds:
+      - uv run python scripts/auto_optimize.py {{.CLI_ARGS}}
+
+  optimize-status:
+    desc: Show optimization progress and best parameters
+    cmds:
+      - uv run python -c "from src.optimizer.study_manager import show_best; show_best()"
+
+  optimize-dashboard:
+    desc: Launch Optuna dashboard for visualization
+    cmds:
+      - uv run optuna-dashboard sqlite:///logs/auto_optimize/optuna_study.db

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -11,18 +11,19 @@ class Config:
     output_dir: Path = Path("outputs")
     logs_dir: Path = Path("logs")
 
-    # LLM settings for math problem solving
-    model_name: str = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"  # strong math reasoning, fits H100
+    # LLM settings
+    model_name: str = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
     model_dtype: str = "bfloat16"
-    max_new_tokens: int = 32768  # long CoT needed for olympiad problems
+    max_new_tokens: int = 16384
+    max_model_len: int = 20480
     temperature: float = 0.6
     top_p: float = 0.95
-    num_samples: int = 16  # majority voting samples per problem
-    gpu_memory_utilization: float = 0.90
+    num_samples: int = 8
+    gpu_memory_utilization: float = 0.92
 
     # Time budget (seconds) - GPU notebook has 5h = 18000s total
     time_budget_total: int = 17400  # leave 10min buffer
-    time_per_problem_max: int = 1500  # ~25min max per problem
+    problem_count: int = 110
 
     # Answer extraction
     answer_range_min: int = 0

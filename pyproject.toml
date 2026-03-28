@@ -15,10 +15,15 @@ dl = [
     "torch>=2.2",
     "torchvision>=0.17",
 ]
+optimize = [
+    "optuna>=4.0",
+    "optuna-dashboard>=0.16",
+]
 dev = [
     "ruff>=0.4",
     "pytest>=8.0",
     "kaggle>=1.6",
+    "optuna>=4.0",
 ]
 
 [tool.ruff]
